@@ -19,19 +19,27 @@ class _RegisterState extends State<Register> {
   final _imageController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
       try {
         final response = await http.post(
           Uri.parse(BaseUrl.register),
-          body: {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
             'username': _usernameController.text,
             'password': _passwordController.text,
             'email': _emailController.text,
             'alamat': _alamatController.text,
             'image': _imageController.text,
-          },
+          }),
         );
 
         if (response.statusCode == 201) {
@@ -43,6 +51,10 @@ class _RegisterState extends State<Register> {
         }
       } catch (e) {
         _showErrorDialog("Terjadi kesalahan saat proses registrasi: $e");
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -72,7 +84,7 @@ class _RegisterState extends State<Register> {
         actions: [
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context); // Tutup dialog
+              Navigator.pop(context);
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const Login()),
@@ -89,103 +101,114 @@ class _RegisterState extends State<Register> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Registrasi"),
+        title: const Text("Form Buat Akun"), // Judul diubah
         backgroundColor: Colors.blue,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Buat Akun Baru",
-                style: TextStyle(
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                controller: _usernameController,
-                label: "Username",
-                icon: Icons.person,
-                validator: (value) => value == null || value.isEmpty
-                    ? "Username tidak boleh kosong"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                controller: _passwordController,
-                label: "Password",
-                icon: Icons.lock,
-                obscureText: true,
-                validator: (value) => value == null || value.isEmpty
-                    ? "Password tidak boleh kosong"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                controller: _emailController,
-                label: "Email",
-                icon: Icons.email,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Email tidak boleh kosong";
-                  }
-                  if (!RegExp(
-                          r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-                      .hasMatch(value)) {
-                    return "Format email tidak valid";
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                controller: _alamatController,
-                label: "Alamat",
-                icon: Icons.location_on,
-                validator: (value) => value == null || value.isEmpty
-                    ? "Alamat tidak boleh kosong"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                controller: _imageController,
-                label: "Gambar (URL)",
-                icon: Icons.image,
-                validator: (value) => value == null || value.isEmpty
-                    ? "URL gambar tidak boleh kosong"
-                    : null,
-              ),
-              const SizedBox(height: 24),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _register,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16, horizontal: 32),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    "Daftar",
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Buat Akun Baru",
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 24.0,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Colors.blue,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _usernameController,
+                    label: "Username",
+                    icon: Icons.person,
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Username tidak boleh kosong"
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _passwordController,
+                    label: "Password",
+                    icon: Icons.lock,
+                    obscureText: true,
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Password tidak boleh kosong"
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _emailController,
+                    label: "Email",
+                    icon: Icons.email,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Email tidak boleh kosong";
+                      }
+                      if (!RegExp(
+                              r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+                          .hasMatch(value)) {
+                        return "Format email tidak valid";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _alamatController,
+                    label: "Alamat",
+                    icon: Icons.location_on,
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Alamat tidak boleh kosong"
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _imageController,
+                    label: "Gambar (URL)",
+                    icon: Icons.image,
+                    validator: (value) => value == null || value.isEmpty
+                        ? "URL gambar tidak boleh kosong"
+                        : null,
+                  ),
+                  const SizedBox(height: 24),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _register,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 16, horizontal: 32),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Daftar",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          if (_isLoading)
+            Container(
+              color: Colors.black45,
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
       ),
     );
   }

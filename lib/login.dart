@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:resepkue_suci/bottomNav.dart';
+import 'package:resepkue_suci/register.dart';
 import 'api.dart';
 
 class Login extends StatefulWidget {
@@ -173,7 +174,7 @@ class _LoginState extends State<Login> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const BottomNav(),
+                                builder: (context) => const Register(),
                               ),
                             );
                           },
